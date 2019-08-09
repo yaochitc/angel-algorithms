@@ -22,15 +22,53 @@ class KMeansModel(ks: Array[Int]) extends Serializable {
   var lcV: IntFloatVector = VFactory.denseFloatVector(K)
   val centerDist = new Array[Double](K)
 
-  def train(param: Param): Unit = {
+  def train(trainData: RDD[LabeledData], param: Param): Unit = {
+    // Number of samples for each cluster
+    val spCountPerCenter = new Array[Int](K)
+
+    initKCentersRandomly(trainData)
+
+    for (epoch <- 1 to param.numEpoch) {
+      val startEpoch = System.currentTimeMillis()
+      trainOneEpoch(epoch, trainData, spCountPerCenter)
+      val epochTime = System.currentTimeMillis() - startEpoch
+
+      val startObj = System.currentTimeMillis()
+      val localObj = computeObjValue(trainData, epoch)
+      val objTime = System.currentTimeMillis() - startObj
+    }
   }
 
-  def initKCentersRandomly(data: RDD[LabeledData], index: Int): Unit = {
-    data.foreachPartition(iter => {
+  def initKCentersRandomly(trainData: RDD[LabeledData]): Unit = {
+    trainData.foreachPartition(iter => {
       val partId = TaskContext.getPartitionId
       if (partId == 0) {
       }
     })
+  }
+
+  /**
+    * Each epoch updation is performed in three steps. First, pull the centers updated by last
+    * epoch from PS. Second, a mini batch of size batch_sample_num is sampled. Third, update the
+    * centers in a mini-batch way.
+    *
+    * @param trainData              : the trainning data storage
+    * @param per_center_step_counts : the array caches the number of samples per center
+    */
+  def trainOneEpoch(epoch: Int, trainData: RDD[LabeledData], per_center_step_counts: Array[Int]): Unit = {
+
+  }
+
+  /**
+    * Compute the objective values of all samples, which is measured by the distance from a
+    * sample to its closest center.
+    *
+    * @param data : the trainning dataset
+    * @param epoch       : the epoch number
+    */
+  def computeObjValue(data: RDD[LabeledData], epoch: Int): Double = {
+    var obj = 0.0
+    obj
   }
 
   /**
