@@ -5,7 +5,6 @@ import java.util
 import com.tencent.angel.ml.feature.LabeledData
 import com.tencent.angel.ml.math2.VFactory
 import com.tencent.angel.ml.math2.vector.{IntFloatVector, Vector}
-import org.apache.spark.TaskContext
 import org.apache.spark.rdd.RDD
 
 object KMeansModel {
@@ -16,7 +15,7 @@ object KMeansModel {
 
 
 class KMeansModel(ks: Array[Int]) extends Serializable {
-  private val K = ks.product
+  private val K = ks.sum
 
   var lcCenters: util.List[Vector] = new util.ArrayList[Vector]()
   var lcV: IntFloatVector = VFactory.denseFloatVector(K)
@@ -26,7 +25,7 @@ class KMeansModel(ks: Array[Int]) extends Serializable {
     // Number of samples for each cluster
     val spCountPerCenter = new Array[Int](K)
 
-    initKCentersRandomly(trainData)
+    initKCentersRandomly(trainData, ks(0))
 
     for (epoch <- 1 to param.numEpoch) {
       val startEpoch = System.currentTimeMillis()
@@ -39,12 +38,12 @@ class KMeansModel(ks: Array[Int]) extends Serializable {
     }
   }
 
-  def initKCentersRandomly(trainData: RDD[LabeledData]): Unit = {
-    trainData.foreachPartition(iter => {
-      val partId = TaskContext.getPartitionId
-      if (partId == 0) {
-      }
-    })
+  def initKCentersRandomly(trainData: RDD[LabeledData], k: Int): Unit = {
+    val points = trainData.takeSample(false, k)
+    for (i <- 0 until k) {
+      val newCent = points(i).getX
+      newCent.setRowId(i)
+    }
   }
 
   /**
@@ -63,8 +62,8 @@ class KMeansModel(ks: Array[Int]) extends Serializable {
     * Compute the objective values of all samples, which is measured by the distance from a
     * sample to its closest center.
     *
-    * @param data : the trainning dataset
-    * @param epoch       : the epoch number
+    * @param data  : the trainning dataset
+    * @param epoch : the epoch number
     */
   def computeObjValue(data: RDD[LabeledData], epoch: Int): Double = {
     var obj = 0.0
