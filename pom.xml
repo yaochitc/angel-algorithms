@@ -24,7 +24,7 @@
         <dependency>
             <groupId>com.tencent.angel</groupId>
             <artifactId>spark-on-angel-core</artifactId>
-            <version>2.2.0</version>
+            <version>2.3.0</version>
         </dependency>
         <dependency>
             <groupId>com.tencent.angel</groupId>
@@ -39,7 +39,7 @@
                     <artifactId>hadoop-mapreduce-client-core</artifactId>
                 </exclusion>
             </exclusions>
-            <version>2.2.0</version>
+            <version>2.3.0</version>
         </dependency>
         <dependency>
             <groupId>com.hankcs</groupId>
